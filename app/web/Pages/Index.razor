@@ -1,0 +1,69 @@
+﻿@page "/"
+
+<PageTitle>Demo</PageTitle>
+
+<div style="text-align: center">
+
+    <h1>Hello, work experience students!</h1>
+
+    <h2>Welcome to...</h2>
+
+    @if (isLoading)
+    {
+        <h3>Loading...</h3>
+    }
+    else if (students.Count == 0)
+    {
+        <h3>No students in the database yet!</h3>
+    }
+    else
+    {
+        <ul>
+            @foreach (var student in students)
+            {
+                <h3>@student</h3>
+            }   
+        </ul>
+    }
+    
+    <br>
+    <div><button @onclick="LoadAsync">Refresh</button></div>
+
+</div>
+
+@code {
+    private List<string> students = new List<string>();
+    private string getStudentsUrl = "https://qzfsolxmdzr3w.azurewebsites.net/api/GetStudents";
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        isLoading = true;
+        await LoadStudentsAsync();
+        isLoading = false;
+    }
+
+    private async Task LoadStudentsAsync()
+    {
+        try 
+        {
+            using (var httpClient = new HttpClient())
+            {
+                using (var response = await httpClient.GetAsync(getStudentsUrl))
+                {
+                    string apiResponse = await response.Content.ReadAsStringAsync();
+                    students = JsonSerializer.Deserialize<List<string>>(apiResponse) ?? new List<string>();
+                }
+            }
+        }
+        catch
+        {
+            students = new List<string>();
+        }
+    }
+}
